@@ -20,17 +20,15 @@ library(DT)
 library(devtools)
 library(googleVis)
 
-
-
-
 ##funciones que utilizare en shiny App
 #-----------------------------------------------------
+
 
 generatedata<-function(n){
   
   Birthday<-sample(seq(as.Date('2018/01/01'), as.Date('2018/12/31'), by="day"), n, replace=TRUE)
   muestra<-sample(nrow(Name),n)
-  Name<-Name[muestra,1]
+  Name<-Name[muestra,1] #dataset de nombres
   Name2<-seq(1:n)
   data<-data.frame(Name, Birthday,Name2)
   return(data)
@@ -38,6 +36,7 @@ generatedata<-function(n){
 
 #===========================================================
 generatecoincidences<-function(matriz){
+  
   cumple<-matriz[duplicated(matriz$Birthday),]
   cumple<-cumple$Birthday
   repetidos<-data.frame(Name="No existen coincidencias",Birthday="")
@@ -55,6 +54,7 @@ generatecoincidences<-function(matriz){
 #==============================================================
 
 generategraphs<-function(bday,t){
+  
   n<-nrow(bday)
   sim.mat = matrix(NA, nrow=n, ncol=2)
   for(i in 2:n){
@@ -71,9 +71,9 @@ generategraphs<-function(bday,t){
 }
 
 
-
-#=========================================================
+#=============================================================
 graphconsecutiveD<-function(bday){
+  
   n<-nrow(bday)
   sim.mat = matrix(NA, nrow=n, ncol=2)
   for(i in 2:n){
@@ -112,6 +112,7 @@ ui<-shinyUI(
     dashboardHeader(title="Birthday Paradox"),
     dashboardSidebar(
       sidebarMenu(
+        menuItem("Introduction", tabName="practicaA",icon=icon("book", "glyphicon")),
         menuItem("Single", tabName="practicaB",icon=icon("cog", lib = "glyphicon")),
         menuItem("Multiple", tabName="practicaC",icon=icon("cog", lib = "glyphicon"))
       )
@@ -119,6 +120,21 @@ ui<-shinyUI(
     dashboardBody(
       #includeCSS("www/bootstrap1.css"),
       tabItems(
+        tabItem(tabName="practicaA",
+                mainPanel(style="text-align: center;",
+                  
+                  h2("What is Birthday Paradox"),
+                  p("In probability theory, the birthday problem or birthday paradox concerns the probability that,"),
+                  p("in a set of n randomly chosen people, some pair of them will have the same birthday.By the pigeonhole principle,"),
+                  p("the probability reaches 100% when the number of people reaches 366 (since there are only 365 possible birthdays."),
+                  p("However, 99.9% probability is reached with just 70 people, and 50% probability with 23 people."),
+                  p("These conclusions are based on the assumption that each day of the year is equally probable for a birthday."),
+                  p("The history of the problem is obscure. W. W. Rouse Ball indicated that it was first discussed by Harold Davenport."),
+                  h2("How calculate the probabilities"),
+                  tags$iframe(width="360", height="215", src="https://www.youtube.com/embed/-SQq0vfzrrg")
+                  
+                )
+        ),
         tabItem(tabName="practicaB",
                 sidebarLayout(
                   sidebarPanel(style="font-style: Italic;",
@@ -147,6 +163,7 @@ ui<-shinyUI(
                 mainPanel(style="text-align: center;",
                           tags$style("#texto3 {color: blue; font-size: 40px; font-style: Italic;}"),
                           textOutput("texto3"),
+                          h5("Given a number of simulations and people in the class, generates the graph of coinciding and consecutive birthdays"),
                           plotOutput("plot")
                           
                 ),
@@ -166,7 +183,6 @@ ui<-shinyUI(
 ##Server
 
 server<-shinyServer(function(input, output){
-  
   
   
   mydata_start<-reactive(generatedata(input$numero))
@@ -210,7 +226,6 @@ server<-shinyServer(function(input, output){
   # Multiple
   #---------
   
-  # output$value <- renderText({ paste(input$numsimulations)})
   bday<-eventReactive(input$Go, {
     generateMuestraGraphs(input$numSim, input$numPeople)
   })
@@ -224,7 +239,7 @@ server<-shinyServer(function(input, output){
       xlab("Number of people")+ ylab("Probability")+
       geom_vline(xintercept = a, colour = "blue")+
       geom_hline(yintercept = 0.5,colour = "blue") +coord_cartesian(ylim = c(0, 1))+
-      scale_y_continuous(breaks = c(0,1,0.5))+scale_x_continuous(breaks = c(0,input$numero,a))+
+      scale_y_continuous(breaks = c(0,1,0.5))+scale_x_continuous(breaks = c(0,input$numPeople,a))+
       theme(plot.title = element_text(color="black",size=18,hjust = 0.5),
             axis.text.y = element_text(color="blue",size=12,hjust=1),
             axis.text.x = element_text(color="darkred",size=12,hjust=1,vjust=1),
@@ -243,7 +258,7 @@ server<-shinyServer(function(input, output){
       xlab("Number of people")+ ylab("Probability")+
       geom_vline(xintercept = a, colour = "blue")+
       geom_hline(yintercept = 0.5,colour = "blue") +coord_cartesian(ylim = c(0, 1))+
-      scale_y_continuous(breaks = c(0,1,0.5))+scale_x_continuous(breaks = c(0,input$numero,a))+
+      scale_y_continuous(breaks = c(0,1,0.5))+scale_x_continuous(breaks = c(0,input$numPeople,a))+
       theme(plot.title = element_text(color="black",size=18,hjust = 0.5),
             axis.text.y = element_text(color="blue",size=12,hjust=1),
             axis.text.x = element_text(color="darkred",size=12,hjust=1,vjust=1),
@@ -263,7 +278,7 @@ server<-shinyServer(function(input, output){
       xlab("Number of people")+ ylab("Probability")+
       geom_vline(xintercept = a, colour = "blue")+
       geom_hline(yintercept = 0.5,colour = "blue") +coord_cartesian(ylim = c(0, 1))+
-      scale_y_continuous(breaks = c(0,1,0.5))+scale_x_continuous(breaks = c(0,input$numero,a))+
+      scale_y_continuous(breaks = c(0,1,0.5))+scale_x_continuous(breaks = c(0,input$numPeople,a))+
       theme(plot.title = element_text(color="black",size=18,hjust = 0.5),
             axis.text.y = element_text(color="blue",size=12,hjust=1),
             axis.text.x = element_text(color="darkred",size=12,hjust=1,vjust=1),
@@ -281,7 +296,7 @@ server<-shinyServer(function(input, output){
       xlab("Number of people")+ ylab("Probability")+
       geom_vline(xintercept = a, colour = "blue")+
       geom_hline(yintercept = 0.5,colour = "blue") +coord_cartesian(ylim = c(0, 1))+
-      scale_y_continuous(breaks = c(0,1,0.5))+scale_x_continuous(breaks = c(0, input$numero,a))+
+      scale_y_continuous(breaks = c(0,1,0.5))+scale_x_continuous(breaks = c(0, input$numPeople,a))+
       theme(plot.title = element_text(color="black",size=18,hjust = 0.5),
             axis.text.y = element_text(color="blue",size=12,hjust=1),
             axis.text.x = element_text(color="darkred",size=12,hjust=1,vjust=1),
@@ -293,8 +308,7 @@ server<-shinyServer(function(input, output){
   output$texto3<-renderText({
     paste("Run", input$numSim," simulations per", input$numPeople,"people")
   }) 
-  
-  
+   
 })  
 
 
